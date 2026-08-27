@@ -9,9 +9,10 @@ import java.net.http.HttpResponse;
 
 public class Endereco {
     private String cep;
+    private String body;
 
-    public String getCep() {
-        return cep;
+    public String getBody() {
+        return body;
     }
 
     public void setCep(String cep) {
@@ -20,25 +21,20 @@ public class Endereco {
 
     public void buscando() {
         try {
-            String url = "https://viacep.com.br/ws/" + cep + "/json/";
+            String url = "https://viacep.com.br/ws/"  + cep + "/json/";
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .build();
             HttpResponse<String> response = client
                     .send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.body().contains("Http 400</h1>"))
-                throw new IOException("Endereço inexistente");
-
-            FileWriter escrita = new FileWriter("endereço.json");
-            escrita.write(response.body());
-            escrita.close();
-
-        } catch (IOException e) {
-            System.out.println(e);
-
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            if (response.body().contains("Http 400</h1>")|| response.body().contains("\"erro\": true")) {
+                throw new IOException();
+            } else {
+                body = response.body();
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("Busca abortada: " + e.getMessage());
         }
     }
 }
